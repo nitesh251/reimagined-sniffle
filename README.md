@@ -225,29 +225,50 @@ Both test suites should pass with all tests green.
 
 If you encounter `ModuleNotFoundError: No module named 'duckdb'` when running tests on Windows, this is because the tests spawn subprocesses using `python` which may not point to Poetry's virtualenv.
 
-**Solution (No Docker Required):**
+**Solution (Recommended for Windows):**
 
-Follow these steps in PowerShell to configure Poetry and run tests successfully:
+Follow these steps in PowerShell:
 
 ```powershell
 # Step 1: Configure Poetry to create virtualenv in project directory
 poetry config virtualenvs.in-project true
 
-# Step 2: Remove existing virtualenv if any
+# Step 2: Remove existing virtualenv if any (ignore errors if none exists)
 poetry env remove python
 
 # Step 3: Reinstall dependencies (this creates .venv in project folder)
 poetry install --with dev
 
-# Step 4: Verify the virtualenv location (should show path ending in .venv)
-poetry env info --path
+# Step 4: Activate the virtualenv (IMPORTANT for Windows)
+.\.venv\Scripts\Activate.ps1
 
-# Step 5: Now run the tests - they should work!
+# Step 5: Now run the tests from within the activated virtualenv
 poetry run exercise check-ingestion
 poetry run exercise check-outliers
 ```
 
-**Why this works:** Creating the virtualenv inside the project (`.venv` folder) makes it easier for Windows to resolve the correct Python interpreter when the tests spawn subprocesses.
+**Why Step 4 is critical:** The tests spawn subprocesses that use the `python` command. Activating the virtualenv ensures that `python` points to the virtualenv's Python, not the system Python.
+
+**If you get an execution policy error when activating:**
+```powershell
+# Run this to allow script execution (one-time setup)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Then try activating again
+.\.venv\Scripts\Activate.ps1
+```
+
+**Alternative: Bypass execution policy for this session only:**
+```powershell
+PowerShell -ExecutionPolicy Bypass -File .\.venv\Scripts\Activate.ps1
+```
+
+**Verify it's working:**
+After activation, your PowerShell prompt should show `(.venv)` at the beginning. You can verify with:
+```powershell
+python --version  # Should show Python 3.11.x
+where python      # Should point to .venv\Scripts\python.exe
+```
 
 **Alternative: Use Docker (if available)**
 If you have Docker installed, follow the Docker setup in SETUP.md for a containerized environment that works consistently across all platforms.

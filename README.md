@@ -221,6 +221,49 @@ poetry run exercise check-outliers
 
 Both test suites should pass with all tests green.
 
+### Troubleshooting (Windows Users)
+
+If you encounter `ModuleNotFoundError: No module named 'duckdb'` when running tests on Windows:
+
+**Option 1: Use Docker (Recommended)**
+Follow the Docker setup in SETUP.md to run in a containerized environment that works consistently across all platforms.
+
+**Option 2: Ensure Poetry Virtual Environment is Active**
+The tests spawn subprocesses that need access to the Poetry virtualenv. Try one of these approaches:
+
+1. **Activate the virtualenv explicitly before running tests:**
+   ```powershell
+   # Find your virtualenv path
+   poetry env info --path
+   
+   # Activate it (PowerShell)
+   & "C:\path\to\virtualenv\Scripts\Activate.ps1"
+   
+   # Then run tests
+   poetry run exercise check-ingestion
+   ```
+
+2. **Use Python from the virtualenv directly:**
+   ```powershell
+   # Find the Python path in your virtualenv
+   poetry run python --version
+   
+   # Set it in your PATH temporarily
+   $env:PATH = "C:\path\to\virtualenv\Scripts;$env:PATH"
+   
+   # Run tests
+   poetry run exercise check-ingestion
+   ```
+
+3. **Ensure Poetry is configured to create virtualenvs in the project:**
+   ```bash
+   poetry config virtualenvs.in-project true
+   poetry install --with dev
+   ```
+   This creates a `.venv` folder in the project directory, making it easier for Windows to find the correct Python.
+
+If issues persist, using Docker is the most reliable cross-platform solution.
+
 ### Additional Testing Commands
 
 Run your own SQL queries on the database:

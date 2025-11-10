@@ -223,46 +223,34 @@ Both test suites should pass with all tests green.
 
 ### Troubleshooting (Windows Users)
 
-If you encounter `ModuleNotFoundError: No module named 'duckdb'` when running tests on Windows:
+If you encounter `ModuleNotFoundError: No module named 'duckdb'` when running tests on Windows, this is because the tests spawn subprocesses using `python` which may not point to Poetry's virtualenv.
 
-**Option 1: Use Docker (Recommended)**
-Follow the Docker setup in SETUP.md to run in a containerized environment that works consistently across all platforms.
+**Solution (No Docker Required):**
 
-**Option 2: Ensure Poetry Virtual Environment is Active**
-The tests spawn subprocesses that need access to the Poetry virtualenv. Try one of these approaches:
+Follow these steps in PowerShell to configure Poetry and run tests successfully:
 
-1. **Activate the virtualenv explicitly before running tests:**
-   ```powershell
-   # Find your virtualenv path
-   poetry env info --path
-   
-   # Activate it (PowerShell)
-   & "C:\path\to\virtualenv\Scripts\Activate.ps1"
-   
-   # Then run tests
-   poetry run exercise check-ingestion
-   ```
+```powershell
+# Step 1: Configure Poetry to create virtualenv in project directory
+poetry config virtualenvs.in-project true
 
-2. **Use Python from the virtualenv directly:**
-   ```powershell
-   # Find the Python path in your virtualenv
-   poetry run python --version
-   
-   # Set it in your PATH temporarily
-   $env:PATH = "C:\path\to\virtualenv\Scripts;$env:PATH"
-   
-   # Run tests
-   poetry run exercise check-ingestion
-   ```
+# Step 2: Remove existing virtualenv if any
+poetry env remove python
 
-3. **Ensure Poetry is configured to create virtualenvs in the project:**
-   ```bash
-   poetry config virtualenvs.in-project true
-   poetry install --with dev
-   ```
-   This creates a `.venv` folder in the project directory, making it easier for Windows to find the correct Python.
+# Step 3: Reinstall dependencies (this creates .venv in project folder)
+poetry install --with dev
 
-If issues persist, using Docker is the most reliable cross-platform solution.
+# Step 4: Verify the virtualenv location (should show path ending in .venv)
+poetry env info --path
+
+# Step 5: Now run the tests - they should work!
+poetry run exercise check-ingestion
+poetry run exercise check-outliers
+```
+
+**Why this works:** Creating the virtualenv inside the project (`.venv` folder) makes it easier for Windows to resolve the correct Python interpreter when the tests spawn subprocesses.
+
+**Alternative: Use Docker (if available)**
+If you have Docker installed, follow the Docker setup in SETUP.md for a containerized environment that works consistently across all platforms.
 
 ### Additional Testing Commands
 
